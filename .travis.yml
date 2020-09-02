@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t avelytchko/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true avelytchko/react-test npm test
+
+after_success:
+  - docker build -t avelytchko/multi-client ./client
+  - docker build -t avelytchko/multi-server ./server
+  - docker build -t avelytchko/multi-worker ./worker
+  - docker build -t avelytchko/multi-nginx ./nginx
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push avelytchko/multi-client
+  - docker push avelytchko/multi-server
+  - docker push avelytchko/multi-worker
+  - docker push avelytchko/multi-nginx
+
+language: generic
